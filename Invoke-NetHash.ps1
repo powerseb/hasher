@@ -4030,7 +4030,7 @@ $runSpacePool.Dispose()
 Write-Log -Log $WriteLog  -Result "Completed" -Message ("Runspace closed and disposed.") -ScriptLog $Scriptlog -LogSource ""
 
 
-if($BuiltInPowerDump = $true)
+if($BuiltInPowerDump -eq $true)
     {
     $Resultfiles = Get-ChildItem -Path ($env:USERPROFILE + "\Appdata\Local\temp\Exchange") -Filter "*TheHasher*" 
 
@@ -4050,10 +4050,19 @@ if($BuiltInPowerDump = $true)
                 }
         }
     }
-elseif()
+elseif($BuiltInLSADump -eq $true)
     {
         $Resultfiles = Get-ChildItem -Path ($env:USERPROFILE + "\Appdata\Local\temp\Exchange") -Filter "*TheHasher*"
-
+        $Dmps= @()
+        Foreach($Resultfile in $Resultfiles)
+            {
+                $SystemName = $null 
+                $SystemName = $Resultfile.name.split("-")[0] 
+                $Dmps += New-Object PSObject -Property @{
+                    SystemName = $SystemName
+                    Path = $Resultfile.FullName
+                }
+            }
     }
 #LSASS DUMP 
 Write-Verbose -Message ("Parsing of the Results completed.")
@@ -4079,6 +4088,14 @@ catch
 $End = Get-date
 Write-Log -Log $WriteLog  -Result "Completed" -Message ("Process completed. Bye for now.") -ScriptLog $Scriptlog -LogSource ""
 
+if($BuiltInPowerDump -eq $true)
+    {
+    return $Creds
+    }
+elseif($BuiltInLSADump -eq $true)
+    {
+    return $Dmps
+    }
 }
 
 
