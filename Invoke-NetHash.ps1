@@ -3604,7 +3604,7 @@ param (
     [Parameter()][bool]$WriteVerbose=$false,
     [Parameter()][string]$Threads = 2,
     [Parameter()][bool]$WriteLog =$false,
-    [Parameter()][bool]$LSADump =$false 
+    [Parameter()][bool]$LSADump =$false, 
     [Parameter()][bool]$PowerDump=$false    
     #[Parameter()][TypeName]$ParameterName
 )
@@ -3920,7 +3920,7 @@ elseif($Hosts -ne $null)
                 }
 
             }
-        Write-Verbose -Message (($Computers.count.tostring() + " Computers have been imported.") 
+        Write-Verbose -Message (($Computers.count.tostring()) + " Computers have been imported.") 
     }
 else 
     {
@@ -4050,24 +4050,35 @@ if($BuiltInPowerDump = $true)
                 }
         }
     }
+elseif()
+    {
+        $Resultfiles = Get-ChildItem -Path ($env:USERPROFILE + "\Appdata\Local\temp\Exchange") -Filter "*TheHasher*"
+
+    }
 #LSASS DUMP 
+Write-Verbose -Message ("Parsing of the Results completed.")
 
 
 
 Write-Log -Log $WriteLog  -Result "Started" -Message ("Share and Directory will be cleaned up") -ScriptLog $Scriptlog -LogSource ""
 try {
     Remove-SmbShare -Name "Exchange$" -Force
-    Remove-Item -Path  ($env:USERPROFILE + "\Appdata\Local\temp\Exchange") -Recurse
-    Write-Log -Log $WriteLog  -Result "Error" -Message ("Share and Directory could not be removed. Please check manually.") -ScriptLog $Scriptlog -LogSource "" -AddInformation $error[0]
+    Write-Log -Log $WriteLog  -Result "Completed" -Message ("Share removed.") -ScriptLog $Scriptlog -LogSource ""
+    if($BuiltInPowerDump = $true)
+        {
+        Remove-Item -Path  ($env:USERPROFILE + "\Appdata\Local\temp\Exchange") -Recurse
+        Write-Log -Log $WriteLog  -Result "Completed" -Message ("Directory removed.") -ScriptLog $Scriptlog -LogSource ""
+        }
+    Write-Verbose -Message ("Cleanup completed.")
 }
 catch
     {
-        Write-Log -Log $WriteLog  -Result "Completed" -Message ("Share and Directory removed.") -ScriptLog $Scriptlog -LogSource ""
+        Write-Log -Log $WriteLog  -Result "Error" -Message ("Share and Directory could not be removed. Please check manually.") -ScriptLog $Scriptlog -LogSource "" -AddInformation $error[0]
     }
-
 
 $End = Get-date
 Write-Log -Log $WriteLog  -Result "Completed" -Message ("Process completed. Bye for now.") -ScriptLog $Scriptlog -LogSource ""
+
 }
 
 
