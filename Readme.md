@@ -2,10 +2,10 @@
 
 The function of Invoke-NetHash is based on the idea to execute commands on a high number of clients by use of the NT Hash. 
 
-The engine for the whole process is the awsome Invoke-SMBExec script (written by ). What Invoke-NetHash adds is a paraell execution of Invoke-SMBExec with a wide range of possible inputs. 
+The engine for the whole process is the awsome Invoke-SMBExec script (written by @kevin_robertson). What Invoke-NetHash adds is a paraell execution of Invoke-SMBExec with a wide range of possible inputs. 
 Next to the possability to execute custom commands I added builtin functions which are quite handy for penetration testing. 
 
-* Invoke-PowerDump - originally written by - I added support for the latest Windows versions so by use of this function the NT Hashes of the local accounts can be extracted from the registry.
+* Invoke-PowerDump - originally written by Kathy Peters, Josh Kelley (winfang) and Dave Kennedy (ReL1K) - I added support for the latest Windows versions so by use of this function the NT Hashes of the local accounts can be extracted from the registry.
 * Invoke-LSADump - a very handy oneliner to dump the LSA Process
 
 If those payloads are used in combination with Invoke-NetHash - the function (e.g. PowerDump) will be executed on every host targeted, the result written to a file and copied back to the attacker host.
