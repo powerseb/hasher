@@ -4043,7 +4043,7 @@ if($Command.Length -gt 1)
     $ShareIPAdress =  (Get-NetIPAddress -AddressFamily IPv4 -InterfaceAlias ((Get-NetIPInterface -AddressFamily IPv4 -ConnectionState Connected).InterfaceAlias[0])).IPAddress
     Write-Verbose -Message ("IP Address for Payload exchange has been selected - " + $ShareIPAdress)
     }
-elseif($Command -eq $null)
+elseif($Command.Length -lt 1)
     {
     Write-Log -Log $WriteLog  -Result "Started" -Message ("Payload will be encoded and placed within the used share") -ScriptLog $Scriptlog -LogSource ""
     if($PowerDump -eq $true)
@@ -4109,13 +4109,12 @@ ForEach ($job in $jobs)
 Write-Log -Log $WriteLog  -Result "Evaluation" -Message ("The jobs had been evaluated. ") -ScriptLog $Scriptlog -LogSource ""
 Write-Log -Log $WriteLog  -Result "Evaluation" -Message ("The results are of " + $jobs.count + " Jobs had " + $errors.count + " errors.") -ScriptLog $Scriptlog -LogSource ""
 Write-Verbose -Message ("The results are of " + $jobs.count + " Jobs had " + $errors.count + " errors.")
-$results
 
 $runSpacePool.Close() 
 $runSpacePool.Dispose()
 Write-Log -Log $WriteLog  -Result "Completed" -Message ("Runspace closed and disposed.") -ScriptLog $Scriptlog -LogSource ""
 
-
+Start-Sleep -Seconds 30
 if($BuiltInPowerDump -eq $true)
     {
     $Resultfiles = Get-ChildItem -Path ($env:USERPROFILE + "\Appdata\Local\temp\Exchange") -Filter "*TheHasher*" 
