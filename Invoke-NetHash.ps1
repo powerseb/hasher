@@ -3531,7 +3531,7 @@ namespace PowerDump
                     $Output = $null
                     $Output = Get-values
 
-                    $Output | Out-File -FilePath ($env:windir + "\" + $env:COMPUTERNAME + (Get-Date -Format yyyyMMdd-hhmmss).tostring() + "TheHasher.txt")
+                    $Output | Out-File -FilePath ($env:windir + "\" + $env:COMPUTERNAME + "-" + (Get-Date -Format yyyyMMdd-hhmmss).tostring() + "TheHasher.txt")
                     }
                 else
                     {
